@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Daily Quest with History</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      margin: 20px;
+      background: #f0f0f0;
+    }
+    h1 {
+      text-align: center;
+    }
+    .quest-list {
+      background: white;
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      max-width: 400px;
+      margin: 0 auto;
+    }
+    label {
+      display: block;
+      margin-bottom: 10px;
+    }
+    select {
+      margin: 10px 0;
+    }
+  </style>
+</head>
+<body>
+  <h1>Daily Quest</h1>
+
+  <div class="quest-list">
+    <label><input type="checkbox" data-quest="クエスト1"> クエスト1</label>
+    <label><input type="checkbox" data-quest="クエスト2"> クエスト2</label>
+    <label><input type="checkbox" data-quest="クエスト3"> クエスト3</label>
+
+    <div>
+      <label for="dateSelector">📅 過去の履歴を見る：</label>
+      <select id="dateSelector"></select>
+    </div>
+  </div>
+
+  <script>
+    const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+    const dateSelector = document.getElementById('dateSelector');
+
+    const getToday = () => new Date().toISOString().split('T')[0];
+    const today = getToday();
+
+    // Load history from localStorage
+    const history = JSON.parse(localStorage.getItem('questHistory') || '{}');
+
+    // Save current state
+    function saveState() {
+      const dayData = {};
+      checkboxes.forEach(cb => {
+        dayData[cb.dataset.quest] = cb.checked;
+      });
+      history[today] = dayData;
+      localStorage.setItem('questHistory', JSON.stringify(history));
+      populateDateSelector();
+    }
+
+    // Load specific day's data
+    function loadState(date) {
+      const saved = history[date] || {};
+      checkboxes.forEach(cb => {
+        cb.checked = saved[cb.dataset.quest] || false;
+      });
+    }
+
+    // Populate dropdown
+    function populateDateSelector() {
+      const dates = Object.keys(history).sort().reverse();
+      dateSelector.innerHTML = dates.map(date => 
+        `<option value="${date}">${date}${date === today ? '（今日）' : ''}</option>`
+      ).join('');
+    }
+
+    // Event listeners
+    checkboxes.forEach(cb => {
+      cb.addEventListener('change', saveState);
+    });
+
+    dateSelector.addEventListener('change', (e) => {
+      loadState(e.target.value);
+    });
+
+    // Init
+    populateDateSelector();
+    loadState(today);
+  </script>
+
+  <!-- 公開方法メモ -->
+  <!-- GitHub Pages（ギットハブ・ページズ）は、HTMLファイルをアップロードするだけでホームページとして無料公開できるサービスです。 -->
+  <!-- やり方：
+    1. GitHubで新しいリポジトリを作成（例：daily-quest）
+    2. このファイルを index.html としてリポジトリにアップロード
+    3. GitHubのリポジトリの「Settings（設定）」を開く
+    4. 「Pages」セクションへ進み、「ソース」を「main」ブランチ + 「/（root）」に設定
+    5. 数秒〜1分後に、公開URLが表示される → それがあなたのホームページ！
+       例：https://あなたのユーザー名.github.io/daily-quest
+  -->
+</body>
+</html>
